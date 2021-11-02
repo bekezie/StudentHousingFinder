@@ -21,8 +21,11 @@ router.post("/user", async function (req, res) {
   console.log("**attempting POST /user");
   const user = await studentHousingDB.getUserByUsername(req.body.username);
   const owner = await studentHousingDB.getOwnerByUsername(user);
-  if (owner != undefined) res.redirect("/ownerHome");
-  else res.redirect("/studentHome");
+  if (owner != undefined) {
+    res.redirect("/ownerHome");
+  } else {
+    res.redirect("/studentHome");
+  }
 });
 
 router.get("/logout", (req, res) => {
@@ -84,12 +87,6 @@ router.post("/message/send", async function (req, res) {
 
   res.redirect("/");
   const listing = req.body;
-  // console.log("create listing", listing);
-  // const username = await studentHousingDB.getUserByUsername(session.userid);
-  // // console.log("got user", username);
-  // const owner = await studentHousingDB.getOwnerByUsername(username);
-  // // console.log("got owner", owner);
-  // const authorID = owner.authorID;
 
   try {
     await studentHousingDB.createListing(listing);
