@@ -73,14 +73,6 @@
                 <br />
                 <%= l.description %>
               </div>
-              <form action="/listings/delete" method="POST">
-                <input
-                  type="hidden"
-                  name="listingID"
-                  value="<%= l.listingID %>"
-                />
-                <button type="submit" class="btn btn-danger">Delete</button>
-              </form>
             </a>
             <br />
             <% })%>
