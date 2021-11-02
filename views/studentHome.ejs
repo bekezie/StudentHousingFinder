@@ -15,7 +15,7 @@
     <div class="container">
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand" href="/user">Student Housing</a>
+          <h1 class="navbar-brand">Student Housing Finder</h1>
           <form action="/logout" method="GET" class="d-flex">
             <button type="submit" class="btn btn-primary">Log Out</button>
           </form>
@@ -41,14 +41,6 @@
                 <br />
                 <%= l.description %>
               </div>
-              <form action="/listings/delete" method="POST">
-                <input
-                  type="hidden"
-                  name="listingID"
-                  value="<%= l.listingID %>"
-                />
-                <button type="submit" class="btn btn-danger">Delete</button>
-              </form>
             </a>
             <br />
             <% })%>

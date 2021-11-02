@@ -1,70 +1,31 @@
 let express = require("express");
 let router = express.Router();
-let studenthousingDB = require("../db/mySQLiteDB.js");
+let studentHousingDB = require("../db/mySQLiteDB.js");
 
 const listingDB = require("../db/mySqliteDB.js");
-
-// save a session for app
-let session;
 
 /* GET home page. */
 router.get("/", async function (req, res) {
   console.log("Got request for /");
 
-  const listings = await studenthousingDB.getListings();
+  const listings = await studentHousingDB.getListings();
   console.log("got listings");
-  session = req.session;
-  if (session.userid) {
-    console.log("got user " + session.userid);
-    res.render("index", {
-      title: "StudentHousingFinderHome",
-      listings: listings,
-    });
-  } else
-    res.render("index", {
-      title: "StudentHousingFinderHome",
-      listings: listings,
-    });
+  res.render("index", {
+    title: "StudentHousingFinderHome",
+    listings: listings,
+  });
 });
 
 // After user logs in, render page depending on owner/student status
 router.post("/user", async function (req, res) {
-  console.log("POST /user");
+  console.log("**attempting POST /user");
+  const user = await studentHousingDB.getUserByUsername(req.body.username);
+  const owner = await studentHousingDB.getOwnerByUsername(user);
 
-  // let user = req.flash("user");
-  // req.flash(req.flash("user"));
-  // // if (user == "") {
-  // //   res.redirect("/register");
-  // // }
-  // console.log("got user " + user);
-
-  const listings = await studenthousingDB.getListings();
-  console.log("got listings");
-  const user = await studenthousingDB.getUserByUsername(req.body.username);
-  console.log("got user", user);
-  const owner = await studenthousingDB.getOwnerByUsername(user);
-  console.log("got owner", owner);
-  // const student = await studenthousingDB.getOwnerByUsername(user);
-
-  if (req.body.password == user.password) {
-    session = req.session;
-    session.userid = req.body.username;
-    if (owner != undefined) {
-      res.render("ownerView", {
-        title: "StudentHousingFinderOwnerHome",
-        listings: listings,
-      });
-      console.log("owner session: ", req.session);
-    } else {
-      res.render("studentView", {
-        // need to create studentView
-        title: "StudentHousingFinderStudentHome",
-        listings: listings,
-      });
-      console.log("student session: ", req.session);
-    }
+  if (owner != undefined) {
+    res.redirect("/ownerHome/?owner=" + owner.username);
   } else {
-    res.redirect("/");
+    res.redirect("/studentHome");
   }
 });
 
@@ -84,39 +45,50 @@ router.get("/student", function (req, res) {
   res.render("studentRegister");
 });
 
-/* POST create listing. */
-router.post("/listings/create", async function (req, res) {
-  console.log("POST listings/create");
+/* GET ownerHome. */
+router.get("/ownerHome", async function (req, res) {
+  console.log("got req", req.query);
+  const username = req.query.owner;
 
-  const user = await studenthousingDB.getUserByUsername(session.userid);
-  console.log("got user", user);
-  const owner = await studenthousingDB.getOwnerByUsername(user);
+  const user = await studentHousingDB.getUserByUsername(username);
+  const owner = await studentHousingDB.getOwnerByUsername(user);
   console.log("got owner", owner);
 
-  const listing = req.body;
-  const authorID = owner.authorID;
-  console.log("Got create listing", listing);
-  session = req.session;
-  session.userid = req.body.username;
-  console.log("req.session: ", req.session);
+  const listings = await studentHousingDB.getListingsByAuthorID(owner.authorID);
+  // console.log("got owner's listings", listings);
 
-  await listingDB.createListing(listing, authorID);
-  console.log("Listing created");
-
-  res.redirect("/user");
+  res.render("ownerHome", {
+    title: "StudentHousingFinderOwnerHome",
+    listings: listings,
+    authorID: owner.authorID,
+  });
 });
 
-/* POST send message. */
-router.post("/message/send", async function (req, res) {
-  console.log("Got post message/send");
+/* GET studentHome. */
+router.get("/studentHome", async function (req, res) {
+  const listings = await studentHousingDB.getListings();
+  console.log("got listings");
+  res.render("studentHome", {
+    title: "StudentHousingFinderStudentHome",
+    listings: listings,
+  });
+});
 
-  const msg = req.body;
-  console.log("Got create message", msg);
+/*************** Listing CRUD ****************/
 
-  await listingDB.createMessage(msg);
-  console.log("Message created");
+/* POST create listing. */
+router.post("/listings/create=:authorID", async function (req, res) {
+  console.log("POST listings/create");
+  const listing = req.body;
+  console.log("got listing create", listing);
 
-  res.redirect("/");
+  const owner = await studentHousingDB.getOwnerByAuthorID(req.params.authorID);
+  console.log("got owner", owner);
+
+  await listingDB.createListing(listing);
+  console.log("Listing created");
+
+  res.redirect("/ownerHome/?owner=" + owner.username);
 });
 
 /* GET listing details. */
@@ -128,51 +100,85 @@ router.get("/listings/:listingID", async function (req, res) {
   console.log("Got listing details ", listingID);
 
   const listing = await listingDB.getListingByID(listingID);
-
-  console.log("Listing updated");
+  console.log("get listing details page");
 
   res.render("listingDetails", { listing: listing });
 });
 
-/* Update listing details. */
-router.get("/listings/:listingID", async function (req, res) {
+/* Update listing details page. */
+router.get("/listings/update/:listingID", async function (req, res) {
   console.log("Got listing details");
 
   const listingID = req.params.listingID;
-
-  console.log("Got listing details ", listingID);
+  console.log("Got listing details edit page", listingID);
 
   const listing = await listingDB.getListingByID(listingID);
 
-  res.render("listingDetails", { listing: listing });
+  res.render("listingEdit", { listing: listing });
 });
 
 /* POST update listing. */
 router.post("/listings/update", async function (req, res) {
-  console.log("POST listings/update");
+  console.log("**attempting POST listings/update");
 
   const listing = req.body;
   // console.log("POST update listing", listing);
 
-  await listingDB.updateListing(listing);
-  console.log("Listing updated");
+  const authorID = req.body.authorID;
+  // console.log("got user", authorID);
+  const owner = await studentHousingDB.getOwnerByAuthorID(authorID);
+  // console.log("got owner", owner);
 
-  res.redirect("/");
+  try {
+    await studentHousingDB.updateListing(listing);
+    console.log("Listing updated");
+  } catch (err) {
+    console.log("Listing not updated: " + err);
+  }
+
+  res.redirect("/ownerHome/?owner=" + owner.username);
 });
 
 /* POST delete listing. */
 router.post("/listings/delete", async function (req, res) {
   console.log("POST delete listing");
 
-  const listing = req.body;
+  const listing = req.body.listingID;
+  console.log("got listing delete", listing);
 
-  // console.log("got delete listing", listing);
+  const authorID = req.body.authorID;
+  // console.log("got user", authorID);
+  const owner = await studentHousingDB.getOwnerByAuthorID(authorID);
+  // console.log("got owner", owner);
 
-  await listingDB.deleteListing(listing);
+  try {
+    await studentHousingDB.deleteListing(listing);
+    console.log("Listing deleted");
+  } catch (err) {
+    console.log("Listing not deleted: " + err);
+  }
 
-  console.log("Listing deleted");
+  res.redirect("/ownerHome/?owner=" + owner.username);
+});
 
-  res.redirect("/");
+/*************** Message CRUD ****************/
+
+/* POST send message. */
+router.post("/message/create", async function (req, res) {
+  console.log("Got post message/send");
+
+  // const listing = req.body;
+
+  res.redirect("/studentHome");
+});
+
+/* POST send message. */
+router.post("/message/send", async function (req, res) {
+  console.log("Got post message/send");
+
+  // const listing = req.body;
+
+  res.redirect("/studentHome");
 });
 
 module.exports = router;

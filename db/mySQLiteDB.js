@@ -128,7 +128,7 @@ const StudentHousingDBController = function () {
     }
   };
 
-  studenthousingDB.getOwnerByUsername = async ownerID => {
+  studenthousingDB.getOwnerByUsername = async username => {
     const db = await connect();
 
     const stmt = await db.prepare(`SELECT *
@@ -137,7 +137,22 @@ const StudentHousingDBController = function () {
       username = :username
     `);
     stmt.bind({
-      ":username": ownerID.username,
+      ":username": username.username,
+    });
+
+    return await stmt.get();
+  };
+
+  studenthousingDB.getOwnerByAuthorID = async authorID => {
+    const db = await connect();
+
+    const stmt = await db.prepare(`SELECT *
+    FROM Owner
+    WHERE
+      authorID = :authorID
+    `);
+    stmt.bind({
+      ":authorID": authorID,
     });
 
     return await stmt.get();
@@ -179,10 +194,15 @@ const StudentHousingDBController = function () {
       ":description": newListing.description,
       ":leaseInMonths": newListing.leaseInMonths,
       ":available": newListing.available,
-      ":authorID": authorID,
+      ":authorID": newListing.authorID,
     });
 
-    return await stmt.run();
+    try {
+      await stmt.run();
+      console.log("createListing successful");
+    } catch (err) {
+      console.log("createListing unsuccessful: " + err);
+    }
   };
 
   // get all Listings , may implement pagination later
@@ -209,6 +229,23 @@ const StudentHousingDBController = function () {
     });
 
     return await stmt.get();
+  };
+
+  // read selected Listing info
+  studenthousingDB.getListingsByAuthorID = async authorID => {
+    const db = await connect();
+
+    const stmt = await db.prepare(`SELECT *
+    FROM Listing
+    WHERE
+      authorID = :authorID
+  `);
+
+    stmt.bind({
+      ":authorID": authorID,
+    });
+
+    return await stmt.all();
   };
 
   // update Listing info
