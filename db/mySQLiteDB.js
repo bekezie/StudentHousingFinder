@@ -162,7 +162,7 @@ const StudentHousingDBController = function () {
    ***************Listing CRUD OPERATIONS*********************
    */
   // create new Listing
-  studenthousingDB.createListing = async (newListing, authorID) => {
+  studenthousingDB.createListing = async newListing => {
     const db = await connect();
 
     const stmt = await db.prepare(`INSERT INTO
@@ -179,7 +179,7 @@ const StudentHousingDBController = function () {
       ":description": newListing.description,
       ":leaseInMonths": newListing.leaseInMonths,
       ":available": newListing.available,
-      ":authorID": authorID,
+      ":authorID": 1,
     });
 
     return await stmt.run();

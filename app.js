@@ -3,7 +3,7 @@ let express = require("express");
 let path = require("path");
 let cookieParser = require("cookie-parser");
 let logger = require("morgan");
-let sessions = require("express-session");
+let session = require("express-session");
 let flash = require("connect-flash");
 //let bodyParser = require("body-parser");
 //let {check, validationResult} = require("express-validator");
@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
-  sessions({
+  session({
     resave: false, // don't save session if unmodified
     saveUninitialized: false, // don't create session until something stored
     secret: "564653456fsd3fd76f3",
