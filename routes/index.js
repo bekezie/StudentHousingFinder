@@ -12,7 +12,7 @@ router.get("/", async function (req, res) {
 
   const listings = await studentHousingDB.getListings();
   console.log("got listings");
-
+ // CODE Reivew - Michael Chang 👉 Bernard Ekezie - This req.session is really cool! Didn't know you can call the persisted data with .session!
   session = req.session;
 
   if (session.userid) {
