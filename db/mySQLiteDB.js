@@ -21,9 +21,10 @@ let StudentHousingDBController = function () {
   //this function will save a new user to the database
   studentHousingDB.createNewUser = async newUser => {
     let db, stmt;
+ // CODE Reivew - Michael Chang 👉 Bernard Ekezie - Could this try block possibly be combined with the try block below?
     try {
       db = await connect();
-
+// CODE Reivew - Michael Chang 👉 Bernard Ekezie - Cool use of prepare and bind. I wasn't able to try that out.
       stmt = await db.prepare(`INSERT INTO
       User(username, password)
       VALUES (:username, :password)
@@ -40,6 +41,7 @@ let StudentHousingDBController = function () {
       } catch (err) {
         console.log("sign up unsuccessful");
       }
+    // CODE Reivew - Michael Chang 👉 Bernard Ekezie - The statement finalize and db.close is commented out in the finally here.
     } finally {
       //   stmt.finalize();
       //   db.close();
