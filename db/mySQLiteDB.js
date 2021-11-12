@@ -84,7 +84,7 @@ let StudentHousingDBController = function () {
         password = :password
         
     `);
-
+      //Daniel: You did a great job on this project! One thing, for future reference, you can encrypt your passwords using Bcrypt! Super easy tool to use.
       stmt.bind({
         ":username": user.username,
         ":password": user.password,
