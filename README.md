@@ -1,3 +1,5 @@
+//Loved how you you created to seperate users and I really like that student could send a message a renter actuslly receives that message! 
+
 # StudentHousingFinder
 
 ![Logo](screenshots/SH.png)
