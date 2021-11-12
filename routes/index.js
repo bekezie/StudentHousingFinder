@@ -12,7 +12,7 @@ router.get("/", async function (req, res) {
 
   const listings = await studentHousingDB.getListings();
   console.log("got listings");
-
+  //This session feature is pretty cool! So it looks like it stores data from the client side?
   session = req.session;
 
   if (session.userid) {
